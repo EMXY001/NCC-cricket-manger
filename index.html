@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123b2a">
+<title>NCC U-12 Cricket Manager</title>
+<style>
+:root{--green:#123b2a;--green2:#1c5a40;--bg:#f3f6f4;--card:#fff;--line:#dce3df;--text:#17202a;--muted:#66736d;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+header{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:20px 16px 18px}header h1{margin:0;font-size:25px}header p{margin:5px 0 0;opacity:.82}
+nav{display:flex;gap:7px;padding:10px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:0;z-index:5}
+nav button{border:0;background:#eef2ef;border-radius:10px;padding:11px 14px;font-weight:700;white-space:nowrap;color:var(--text)}
+nav button.active{background:var(--green);color:#fff}
+main{max-width:1050px;margin:auto;padding:16px}.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{font-size:28px;font-weight:800;margin-top:4px}.muted{color:var(--muted);font-size:13px}
+h2{margin:5px 0 15px}h3{margin:0 0 12px}
+input,select{width:100%;min-height:46px;border:1px solid #cbd5d0;border-radius:9px;padding:10px 12px;font-size:16px;background:#fff;margin:5px 0 12px}
+button{font-size:15px;cursor:pointer}.primary{background:var(--green);color:#fff;border:0;border-radius:9px;padding:12px 16px;font-weight:750}.secondary{background:#eef2ef;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:10px 13px;font-weight:650}.danger{background:#fff0ef;color:var(--red);border:0;border-radius:8px;padding:9px 11px;font-weight:650}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.row>*{flex:1;min-width:130px}
+.player{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #edf0ee;padding:13px 0}.player:first-child{border-top:0}
+.pill{display:inline-block;background:#edf5f0;color:var(--green);border-radius:99px;padding:4px 8px;font-size:12px;font-weight:700}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:10px;border-bottom:1px solid #edf0ee;white-space:nowrap}th{font-size:12px;color:var(--muted);text-transform:uppercase}
+.small{font-size:12px}.notice{background:#eef6ff;border:1px solid #d7e9ff;padding:12px;border-radius:10px;margin-bottom:14px}
+.matchPlayer{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:#fafcfb}.matchPlayer h4{margin:0 0 10px}
+.matchPlayer .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.matchPlayer input{margin:0}
+.hidden{display:none!important}.empty{text-align:center;color:var(--muted);padding:25px 10px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}.matchPlayer .mini{grid-template-columns:repeat(6,1fr)}}
+</style>
+<link rel="manifest" href="manifest.json"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="NCC Cricket"><link rel="apple-touch-icon" href="icon-192.png"></head>
+<body>
+<header><h1>NCC U-12 Cricket Manager</h1><p>Complete team & player statistics</p></header>
+<nav>
+<button class="tab active" data-page="dashboard">Dashboard</button>
+<button class="tab" data-page="players">Players</button>
+<button class="tab" data-page="matches">New Match</button>
+<button class="tab" data-page="stats">Statistics</button>
+<button class="tab" data-page="history">Match History</button>
+<button class="tab" data-page="backup">Backup</button>
+</nav>
+
+<main>
+<section id="dashboard" class="page active">
+<h2>Team Dashboard</h2>
+<div class="grid">
+<div class="card"><div class="muted">Matches</div><div class="stat" id="dMatches">0</div></div>
+<div class="card"><div class="muted">Wins</div><div class="stat" id="dWins">0</div></div>
+<div class="card"><div class="muted">Runs</div><div class="stat" id="dRuns">0</div></div>
+<div class="card"><div class="muted">Wickets</div><div class="stat" id="dWickets">0</div></div>
+</div>
+<div class="card"><h3>Top Batters</h3><div id="topBatters"></div></div>
+<div class="card"><h3>Top Bowlers</h3><div id="topBowlers"></div></div>
+</section>
+
+<section id="players" class="page">
+<h2>Team Players</h2>
+<div class="card">
+<h3>Add Player</h3>
+<div class="row"><input id="pName" placeholder="Player name"><input id="pNumber" type="number" min="1" placeholder="Jersey number"></div>
+<div class="row"><select id="pBat"><option>Right-hand bat</option><option>Left-hand bat</option></select><select id="pBowl"><option>Right-arm pace</option><option>Left-arm pace</option><option>Right-arm spin</option><option>Left-arm spin</option><option>Does not bowl</option></select></div>
+<button class="primary" id="addPlayer">Add Player</button>
+</div>
+<div class="card"><div id="playerList"></div></div>
+</section>
+
+<section id="matches" class="page">
+<h2>Record a Match</h2>
+<div class="card">
+<div class="row"><div><label>Opponent</label><input id="opponent" placeholder="Opponent name"></div><div><label>Date</label><input id="matchDate" type="date"></div></div>
+<div class="row"><div><label>Team runs</label><input id="teamRuns" type="number" min="0" value="0"></div><div><label>Wickets lost</label><input id="teamLost" type="number" min="0" max="10" value="0"></div><div><label>Result</label><select id="result"><option>Win</option><option>Loss</option><option>Draw</option><option>Tie</option></select></div></div>
+</div>
+<div id="matchPlayers"></div>
+<button class="primary" id="saveMatch" style="width:100%;margin:5px 0 20px">SAVE COMPLETE MATCH</button>
+</section>
+
+<section id="stats" class="page">
+<h2>Player Statistics</h2>
+<div class="card"><div class="scroll"><table><thead><tr>
+<th>Player</th><th>Mat</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th><th>4s</th><th>6s</th><th>Wkts</th><th>Eco</th><th>Catches</th><th>RO</th>
+</tr></thead><tbody id="statsBody"></tbody></table></div></div>
+</section>
+
+<section id="history" class="page">
+<h2>Match History</h2><div class="card" id="historyList"></div>
+</section>
+
+<section id="backup" class="page">
+<h2>Backup & Data</h2>
+<div class="card">
+<h3>Protect your team data</h3>
+<p class="muted">Export a backup file regularly. You can restore it later on this device/browser.</p>
+<div class="row"><button class="primary" id="exportBtn">Export Backup</button><label class="secondary" style="text-align:center;cursor:pointer">Import Backup<input id="importFile" type="file" accept=".json" style="display:none"></label></div>
+</div>
+<div class="card"><h3>Danger Zone</h3><button class="danger" id="clearBtn">Delete All Team Data</button></div>
+</section>
+</main>
+
+<script>
+const KEY="ncc_u12_complete_v2";
+let data=JSON.parse(localStorage.getItem(KEY)||'{"players":[],"matches":[]}');
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const save=()=>localStorage.setItem(KEY,JSON.stringify(data));
+const today=new Date().toISOString().slice(0,10); $("matchDate").value=today;
+
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.page).classList.add("active");if(b.dataset.page==="matches")renderMatchPlayers();});
+
+function statsFor(id){
+ let s={matches:0,runs:0,balls:0,fours:0,sixes:0,dismissals:0,high:0,overs:0,wicket:0,runsConceded:0,catches:0,runouts:0,stumpings:0};
+ data.matches.forEach(m=>{let p=m.players.find(x=>x.id===id);if(!p)return;s.matches++;s.runs+=+p.runs||0;s.balls+=+p.balls||0;s.fours+=+p.fours||0;s.sixes+=+p.sixes||0;s.dismissals+=p.out?1:0;s.high=Math.max(s.high,+p.runs||0);s.overs+=+p.overs||0;s.wicket+=+p.wickets||0;s.runsConceded+=+p.runsConceded||0;s.catches+=+p.catches||0;s.runouts+=+p.runouts||0;s.stumpings+=+p.stumpings||0});return s;
+}
+function render(){
+ const wins=data.matches.filter(m=>m.result==="Win").length;
+ $("dMatches").textContent=data.matches.length;$("dWins").textContent=wins;
+ $("dRuns").textContent=data.matches.reduce((a,m)=>a+(+m.teamRuns||0),0);
+ $("dWickets").textContent=data.matches.reduce((a,m)=>a+(+m.teamWickets||0),0);
+ $("playerList").innerHTML=data.players.length?data.players.map((p,i)=>{let s=statsFor(p.id);return `<div class="player"><div><b>${esc(p.name)}</b> <span class="pill">#${esc(p.number||"-")}</span><div class="muted">${esc(p.bat)} • ${esc(p.bowl)}<br>${s.runs} runs • ${s.wicket} wickets • ${s.catches} catches</div></div><button class="danger" onclick="removePlayer(${i})">Remove</button></div>`}).join(""):`<div class="empty">No players added.</div>`;
+ let ranked=data.players.map(p=>({p,s:statsFor(p.id)})).sort((a,b)=>b.s.runs-a.s.runs);
+ $("topBatters").innerHTML=ranked.slice(0,5).filter(x=>x.s.runs||x.s.matches).map(x=>`<div class="player"><b>${esc(x.p.name)}</b><span>${x.s.runs} runs</span></div>`).join("")||`<div class="empty">Record matches to see leaders.</div>`;
+ let bowl=ranked.sort((a,b)=>b.s.wicket-a.s.wicket);
+ $("topBowlers").innerHTML=bowl.slice(0,5).filter(x=>x.s.wicket||x.s.matches).map(x=>`<div class="player"><b>${esc(x.p.name)}</b><span>${x.s.wicket} wickets</span></div>`).join("")||`<div class="empty">Record bowling figures to see leaders.</div>`;
+ $("statsBody").innerHTML=data.players.length?data.players.map(p=>{let s=statsFor(p.id);let avg=s.dismissals?s.runs/s.dismissals:s.runs;let sr=s.balls?s.runs*100/s.balls:0;let eco=s.overs?s.runsConceded/s.overs:0;return `<tr><td><b>${esc(p.name)}</b></td><td>${s.matches}</td><td>${s.runs}</td><td>${s.high}</td><td>${avg.toFixed(2)}</td><td>${sr.toFixed(1)}</td><td>${s.fours}</td><td>${s.sixes}</td><td>${s.wicket}</td><td>${eco.toFixed(2)}</td><td>${s.catches}</td><td>${s.runouts}</td></tr>`}).join(""):`<tr><td colspan="12">No players yet.</td></tr>`;
+ $("historyList").innerHTML=data.matches.length?data.matches.slice().reverse().map((m,i)=>`<div class="player"><div><b>${esc(m.opponent)}</b><div class="muted">${esc(m.date)} • ${m.teamRuns}/${m.teamWickets} • ${m.players.length} player records</div></div><span class="pill">${esc(m.result)}</span></div>`).join(""):`<div class="empty">No matches recorded yet.</div>`;
+}
+$("addPlayer").onclick=()=>{let name=$("pName").value.trim();if(!name){alert("Enter a player name.");return}data.players.push({id:Date.now()+"_"+Math.random(),name,number:$("pNumber").value,bat:$("pBat").value,bowl:$("pBowl").value});save();$("pName").value="";$("pNumber").value="";render();};
+window.removePlayer=i=>{if(confirm("Remove this player? Existing match records will remain.")){data.players.splice(i,1);save();render();renderMatchPlayers();}};
+
+function renderMatchPlayers(){
+ $("matchPlayers").innerHTML=data.players.length?`<div class="card"><h3>Player Match Performance</h3><div class="muted">Fill only the figures relevant to each player. Batting: runs, balls, 4s, 6s, out. Bowling: overs, runs conceded, wickets. Fielding: catches, run-outs, stumpings.</div>${data.players.map(p=>`<div class="matchPlayer" data-id="${esc(p.id)}"><h4>${esc(p.name)} <span class="pill">#${esc(p.number||"-")}</span></h4><div class="mini"><input class="runs" type="number" min="0" placeholder="Runs"><input class="balls" type="number" min="0" placeholder="Balls"><input class="fours" type="number" min="0" placeholder="4s"><input class="sixes" type="number" min="0" placeholder="6s"><input class="overs" type="number" min="0" step="0.1" placeholder="Overs"><input class="wickets" type="number" min="0" placeholder="Wkts"><input class="runsConceded" type="number" min="0" placeholder="Runs conceded"><input class="catches" type="number" min="0" placeholder="Catches"><input class="runouts" type="number" min="0" placeholder="Run-outs"><input class="stumpings" type="number" min="0" placeholder="Stumpings"></div><label class="small"><input class="out" type="checkbox" style="width:18px;min-height:18px;vertical-align:middle"> Out</label></div>`).join("")}</div>`:`<div class="card empty">Add players first.</div>`;
+}
+$("saveMatch").onclick=()=>{
+ if(!data.players.length){alert("Add players first.");return}
+ let cards=[...document.querySelectorAll(".matchPlayer")];
+ let players=cards.map(c=>({id:c.dataset.id,runs:+c.querySelector(".runs").value||0,balls:+c.querySelector(".balls").value||0,fours:+c.querySelector(".fours").value||0,sixes:+c.querySelector(".sixes").value||0,overs:+c.querySelector(".overs").value||0,wickets:+c.querySelector(".wickets").value||0,runsConceded:+c.querySelector(".runsConceded").value||0,catches:+c.querySelector(".catches").value||0,runouts:+c.querySelector(".runouts").value||0,stumpings:+c.querySelector(".stumpings").value||0,out:c.querySelector(".out").checked}));
+ data.matches.push({opponent:$("opponent").value.trim()||"Unknown",date:$("matchDate").value||today,teamRuns:+$("teamRuns").value||0,teamWickets:+$("teamLost").value||0,result:$("result").value,players});
+ save();render();renderMatchPlayers();$("opponent").value="";$("teamRuns").value=0;$("teamLost").value=0;alert("Complete match saved.");
+};
+$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="NCC_U12_Cricket_Backup.json";a.click();URL.revokeObjectURL(a.href)};
+$("importFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.players||!x.matches)throw 0;data=x;save();render();renderMatchPlayers();alert("Backup restored.")}catch{alert("That file is not a valid NCC backup.")}};r.readAsText(f)};
+$("clearBtn").onclick=()=>{if(confirm("Delete ALL players, matches and statistics? This cannot be undone unless you have a backup.")){data={players:[],matches:[]};save();render();renderMatchPlayers();}};
+render();renderMatchPlayers();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
